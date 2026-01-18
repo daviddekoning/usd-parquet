@@ -63,20 +63,38 @@ bool ParquetLayerData::Open(const std::string& filePath) {
             int64_t valuesRead = 0;
             int64_t rowsInGroup = _fileMetadata->RowGroup(rg)->num_rows();
             
-            // For simplicity, reading all at once. For massive files, we'd loop.
+            // Allocate buffer for the whole group (or we could chunk it, but let's stick to simple logic for now)
             std::vector<parquet::ByteArray> values(rowsInGroup);
             std::vector<int16_t> defLevels(rowsInGroup);
             std::vector<int16_t> repLevels(rowsInGroup);
             
-            colReader->ReadBatch(rowsInGroup, defLevels.data(), repLevels.data(), 
-                               values.data(), &valuesRead);
+            int64_t totalValuesRead = 0;
+            while (totalValuesRead < rowsInGroup) {
+                int64_t valuesRead = 0;
+                int64_t rowsToRead = rowsInGroup - totalValuesRead;
+                
+                colReader->ReadBatch(rowsToRead, 
+                                   defLevels.data() + totalValuesRead, 
+                                   repLevels.data() + totalValuesRead, 
+                                   values.data() + totalValuesRead, 
+                                   &valuesRead);
+                                   
+                if (valuesRead == 0) break; // Should not happen if rowsInGroup is correct
 
-            for (int64_t i = 0; i < valuesRead; ++i) {
-                std::string pathStr(reinterpret_cast<const char*>(values[i].ptr), values[i].len);
-                SdfPath path(pathStr);
-                if (path.IsAbsolutePath()) {
-                    _pathIndex[path] = {rg, i};
+                // Process this batch
+                for (int64_t i = 0; i < valuesRead; ++i) {
+                     // CAUTION: values[totalValuesRead + i]
+                     const auto& val = values[totalValuesRead + i];
+                     std::string pathStr(reinterpret_cast<const char*>(val.ptr), val.len);
+                     
+                     SdfPath path(pathStr);
+                     if (path.IsAbsolutePath()) {
+                        // Store index: rg is row group, index is ABSOLUTE index in row group
+                        _pathIndex[path] = {rg, static_cast<int64_t>(totalValuesRead + i)};
+                     }
                 }
+                
+                totalValuesRead += valuesRead;
             }
         }
 
@@ -109,6 +127,8 @@ bool ParquetLayerData::HasSpec(const SdfPath& path) const {
         return false;
     }
     
+    // Check all prim paths including intermediate ancestors
+    bool found = _allPaths.count(path) > 0;
     // Check all prim paths including intermediate ancestors
     return _allPaths.count(path) > 0;
 }
@@ -468,6 +488,9 @@ void ParquetLayerData::_BuildPathHierarchy() {
     _allPaths.clear();
     _childrenMap.clear();
     
+    // Temporary map using set to avoid O(N^2) checks when adding children
+    std::map<SdfPath, std::set<TfToken>> childrenSets;
+
     // Process each indexed path
     for (const auto& pair : _pathIndex) {
         const SdfPath& path = pair.first;
@@ -479,11 +502,7 @@ void ParquetLayerData::_BuildPathHierarchy() {
             SdfPath parent = current.GetParentPath();
             
             // Add this path as a child of its parent
-            TfToken childName = current.GetNameToken();
-            auto& children = _childrenMap[parent];
-            if (std::find(children.begin(), children.end(), childName) == children.end()) {
-                children.push_back(childName);
-            }
+            childrenSets[parent].insert(current.GetNameToken());
             
             // Add ancestor to allPaths (if not the root)
             if (parent != SdfPath::AbsoluteRootPath()) {
@@ -492,6 +511,13 @@ void ParquetLayerData::_BuildPathHierarchy() {
             
             current = parent;
         }
+    }
+    
+    // Transfer sets to vectors for the final map
+    for (const auto& pair : childrenSets) {
+        // Convert set to vector (sorted by default from set interaction)
+        std::vector<TfToken> children(pair.second.begin(), pair.second.end());
+        _childrenMap[pair.first] = std::move(children);
     }
 }
 
