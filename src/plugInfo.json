@@ -1,0 +1,30 @@
+{
+    "Plugins": [
+        {
+            "Info": {
+                "Types": {
+                    "ParquetFileFormat": {
+                        "bases": [
+                            "SdfFileFormat"
+                        ],
+                        "displayName": "Parquet Metadata Reader",
+                        "extensions": [
+                            "parquet"
+                        ],
+                        "formatId": "parquetFormat",
+                        "primary": true,
+                        "target": "usd",
+                        "supportsReading": true,
+                        "supportsWriting": false,
+                        "supportsEditing": false
+                    }
+                }
+            },
+            "LibraryPath": "libparquetFormat.dylib",
+            "Name": "parquetFormat",
+            "ResourcePath": "resources",
+            "Root": "..",
+            "Type": "library"
+        }
+    ]
+}
