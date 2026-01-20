@@ -39,6 +39,8 @@ over "World"
 }
 ```
 
+There is a small utility script in the test folder called `view_parquet.py` that can be used to inspect the contents of a parquet file. If you have uv installed, you can make the script executable (`chmod u+x ...`) and run it directly.
+
 ## Overview
 
 This plugin implements `SdfFileFormat` to read Parquet files using the Apache Arrow C++ library. It features:
