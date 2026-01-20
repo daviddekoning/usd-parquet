@@ -4,9 +4,11 @@ This is a proof of concept custom OpenUSD file format plugin that reads prim pro
 
 The aim of this PoC is to explore the possiblity of bridging the VFX / 3D modelling world with the data science / engineering world.
 
-Both OpenUSD and Parquet allow large files to be processed without fully loading them into memory. This PoC uses Parquets storage mechanism to lazily load the property data as it is access, rather than loading it all at load time. 
+Both OpenUSD and Parquet allow large files to be processed without fully loading them into memory. This PoC uses Parquet's storage mechanism to lazily load the property data as it is accessed, rather than reading it all into memory at load time. 
 
-**Disclaimer**: This has been mostly built by various AI models. The overall architecture (see [A   rchitecture](./architecture.md)) was elaborated in Google Gemini (the chatbot), with me reading the OpenUSD API reference, feeding in the high-level concept and correcting certain method names. This architecture was then implemented in Antigravity (using Opus 4.5, and various Gemini models). I am not a proficient C++ developer, so I mainly controlled the model's work by specifying the test cases I wanted to see.
+**Disclaimer**: This has been mostly built by various AI models. The overall architecture (see [Architecture](./architecture.md)) was elaborated in Google Gemini (the chatbot), with me reading the OpenUSD API reference, feeding in the high-level concept and correcting certain method names. This architecture was then implemented in Antigravity (using Opus 4.5, and various Gemini models). I am not a proficient C++ developer, so I mainly controlled the model's work by specifying the test cases I wanted to see.
+
+This was developed and tested on macOS, using the OpenUSD 25.11 release, on an Apple M1 chip. I don't see any reason why it shouldn't work on other platforms, but who knows `¯\_(ツ)_/¯`.
 
 ## Parquet schema
 
