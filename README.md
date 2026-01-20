@@ -1,6 +1,43 @@
 # USD Parquet Plugin
 
-A custom OpenUSD file format plugin that natively reads Parquet files as USD layers. This plugin allows you to treat Parquet files like regular USD files, enabling high-performance reading of tabular data into the USD stage.
+This is a proof of concept custom OpenUSD file format plugin that reads prim properties from Parquet files. The parquet is presented as a USD layer, and the properties are added to prims via an `over`. 
+
+The aim of this PoC is to explore the possiblity of bridging the VFX / 3D modelling world with the data science / engineering world.
+
+Both OpenUSD and Parquet allow large files to be processed without fully loading them into memory. This PoC uses Parquets storage mechanism to lazily load the property data as it is access, rather than loading it all at load time. 
+
+**Disclaimer**: This has been mostly built by various AI models. The overall architecture (see [A   rchitecture](./architecture.md)) was elaborated in Google Gemini (the chatbot), with me reading the OpenUSD API reference, feeding in the high-level concept and correcting certain method names. This architecture was then implemented in Antigravity (using Opus 4.5, and various Gemini models). I am not a proficient C++ developer, so I mainly controlled the model's work by specifying the test cases I wanted to see.
+
+## Parquet schema
+
+This plugin expects a parquet file with a column called 'path' (string) and then a number of other columns with the property values. The path column is used to reconstruct the USD hierarchy. The other columns correspond to a property that will be accessible on the prim.
+
+For example, a parquet file with the following data:
+
+| path | temperature | pressure |
+|------|-------------|----------|
+| /World/Sphere1 | 20.0 | 101325.0 |
+| /World/Cube1 | 25.0 | 101325.0 |
+
+is presented as:
+
+```usda
+#usda 1.0
+
+over "World"
+{
+    over "Sphere1"
+    {
+        double temperature = 20.0
+        double pressure = 101325.0
+    }
+    over "Cube1"
+    {
+        double temperature = 25.0
+        double pressure = 101325.0
+    }
+}
+```
 
 ## Overview
 
@@ -54,3 +91,5 @@ The project includes a comprehensive test suite in `tests/test_parquet_plugin.py
 2. Hierarchical path reconstruction
 3. Attribute value resolution
 4. Layer composition (Parquet layer overriding base layer)
+
+Run the scripts `create_test_parquet.py` and `generate_large_parquet.py` to create test data. 
