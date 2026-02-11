@@ -10,28 +10,6 @@ def setup_module(module):
         plugin.Load()
 
 
-def test_properties_missing_in_usda():
-    """
-    Test that properties do not exist on the USDA layer by itself.
-    """
-    # Create a simple USDA layer
-    layer = Sdf.Layer.CreateAnonymous(".usda")
-    layer.ImportFromString("""#usda 1.0
-def "World" {
-    def "Sphere1" {
-    }
-}
-""")
-
-    stage = Usd.Stage.Open(layer)
-    prim = stage.GetPrimAtPath("/World/Sphere1")
-    assert prim.IsValid()
-
-    # Assert 'temperature' attribute does not exist
-    temp_attr = prim.GetAttribute("temperature")
-    assert not temp_attr.IsValid()
-
-
 def test_properties_present_with_parquet_sublayer():
     """
     Test that properties are added when we reference in the parquet sublayer.

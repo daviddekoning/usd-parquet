@@ -97,3 +97,27 @@ The project includes a comprehensive test suite in `tests/test_parquet_plugin.py
 4. Layer composition (Parquet layer overriding base layer)
 
 Run the scripts `create_test_parquet.py` and `generate_large_parquet.py` to create test data. 
+
+## Benchmarks
+
+A series of benchmark tests check how much memory and time it takes to read properties from
+usdc vs parqet files.
+
+The tests can be run via the `run_benchmarks.py` script. It will
+
+1. Generate the required test data:
+  - a base usda layer, with prim defined (def), but with no properties whatsoever
+  - a parquet file with 20 properties attached to each prim
+  - a usdc file with the same 20 properties attached to each prim
+2. Run the selected tests, which produces the following output:
+  - `benchmark_results.json`: all the data collected during the run
+  - `benchmark_report.html`: an html report generated from the json data
+
+A class called `MemoryTracker` (in `tests/results.py`) is used to track memory and timing during a test.
+It presents as a python context manager, and will measure the time and total memory used by the process at entry and exit of the context (e.g. `with MemoryTracker() as tracker:`). Memory is measured with psutil, to capture both python and C++ memory allocation. All tests are run in sub-processes to get clean memory usage numbers, unaffected by garbage collection in the main testing process.
+
+`MemoryTracker` has a function `probe` that will record the time and memory use. This functionality is used to breakdown the time and memory used by different steps of the test.
+
+The benchmarks run 5 times by default.
+
+There are a large number of benchmarks that the AI wrote, that I have marked as `skipped` because I am not satisfied that they present meaningful numbers.
