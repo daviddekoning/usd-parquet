@@ -13,9 +13,9 @@ Usage:
 import argparse
 import os
 import random
+import re
 import string
 from pathlib import Path
-import re
 
 import numpy as np
 import pandas as pd
@@ -132,17 +132,21 @@ def generate_dataframe(n: int, hierarchy: str) -> pd.DataFrame:
 
 
 def write_parquet(
-    df: pd.DataFrame, output_path: Path, compression: str, row_group_size: int, force: bool = False
+    df: pd.DataFrame,
+    output_path: Path,
+    compression: str,
+    row_group_size: int,
+    force: bool = False,
 ) -> bool:
     """Write DataFrame to Parquet with specified settings.
-    
+
     Returns True if file was written, False if skipped (already exists).
     """
     if output_path.exists() and not force:
         size_mb = output_path.stat().st_size / (1024 * 1024)
         print(f"  Skipped: {output_path.name} ({size_mb:.2f} MB) - already exists")
         return False
-    
+
     table = pa.Table.from_pandas(df, preserve_index=False)
     pq.write_table(
         table,
@@ -157,14 +161,14 @@ def write_parquet(
 
 def write_usdc(df: pd.DataFrame, output_path: Path, force: bool = False) -> bool:
     """Write DataFrame as a USDC layer with 'over' prims.
-    
+
     Returns True if file was written, False if skipped (already exists).
     """
     if output_path.exists() and not force:
         size_mb = output_path.stat().st_size / (1024 * 1024)
         print(f"  Skipped: {output_path.name} ({size_mb:.2f} MB) - already exists")
         return False
-    
+
     from pxr import Sdf, Vt
 
     # Create layer
@@ -224,17 +228,17 @@ def _convert_value(value, type_name: str):
 
 def write_base_usda(paths: list[str], output_path: Path, force: bool = False) -> bool:
     """Write a base USDA file with prim hierarchy but no properties.
-    
+
     Returns True if file was written, False if skipped (already exists).
     """
     if output_path.exists() and not force:
         print(f"  Skipped: {output_path.name} - already exists")
         return False
-    
+
     from pxr import Sdf
 
     layer = Sdf.Layer.CreateNew(str(output_path))
-    
+
     # Ensure root prim is defined so Traversal works
     root_path = Sdf.Path(paths[0]).GetPrefixes()[0]
     root_prim = Sdf.CreatePrimInLayer(layer, root_path)
@@ -285,7 +289,7 @@ def main():
     output_dir = Path(args.output_dir) / f"{args.scale}_{args.hierarchy}"
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"Output directory: {output_dir}")
-    
+
     if args.force:
         print("Force mode: Will regenerate all files")
     else:
@@ -298,16 +302,16 @@ def main():
         base_path = output_dir / "base_scene.usda"
         usdc_path = output_dir / "properties.usdc"
         required_files = [base_path, usdc_path]
-        
+
         for compression in COMPRESSIONS:
             filename = f"properties_{compression.lower()}_{args.scale}.parquet"
             required_files.append(output_dir / filename)
-        
+
         for file_path in required_files:
             if not file_path.exists():
                 needs_generation = True
                 break
-    
+
     if not needs_generation:
         print("\n✓ All files already exist. Skipping generation.")
         print("  Use --force to regenerate.")
@@ -351,7 +355,9 @@ def main():
 
     print(f"\n✓ Done! Output in {output_dir}")
     if not args.force and written_count < len(COMPRESSIONS):
-        print(f"  ({len(COMPRESSIONS) - written_count} file(s) were skipped - already exist)")
+        print(
+            f"  ({len(COMPRESSIONS) - written_count} file(s) were skipped - already exist)"
+        )
 
 
 if __name__ == "__main__":

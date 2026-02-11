@@ -7,8 +7,9 @@
 # ///
 
 import argparse
-import pandas as pd
 import sys
+
+import pandas as pd
 
 
 def main():

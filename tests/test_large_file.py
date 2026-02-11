@@ -1,7 +1,8 @@
-from pxr import Sdf, Plug
 import os
-import pytest
 import time
+
+import pytest
+from pxr import Plug, Sdf
 
 
 # Ensure the plugin is loaded

@@ -16,22 +16,26 @@ from pathlib import Path
 def generate_tab_content(test_name, results, data):
     """Generate content for a specific test tab."""
     test_results = [r for r in results if r["test"] == test_name]
-    
+
     if not test_results:
         return f"""
         <div class="card">
             <p>No results available for {test_name}</p>
         </div>
         """
-    
+
     # Generate comparison table
     table_rows = []
     for r in test_results:
         format_class = "badge-usdc" if r["format"] == "usdc" else "badge-parquet"
-        mean = f"{r['mean_seconds']*1000:.2f} ms" if r.get("mean_seconds") else "-"
-        std = f"±{r['std_seconds']*1000:.2f} ms" if r.get("std_seconds") else "-"
-        memory = f"{r.get('peak_memory_bytes', 0)/(1024*1024):.2f} MB" if r.get('peak_memory_bytes') else "-"
-        
+        mean = f"{r['mean_seconds'] * 1000:.2f} ms" if r.get("mean_seconds") else "-"
+        std = f"±{r['std_seconds'] * 1000:.2f} ms" if r.get("std_seconds") else "-"
+        memory = (
+            f"{r.get('peak_memory_bytes', 0) / (1024 * 1024):.2f} MB"
+            if r.get("peak_memory_bytes")
+            else "-"
+        )
+
         extra_info = []
         if r.get("prim_count"):
             extra_info.append(f"{r['prim_count']:,} prims")
@@ -39,7 +43,7 @@ def generate_tab_content(test_name, results, data):
             extra_info.append(f"{r['time_per_prim_us']:.2f} µs/prim")
         if r.get("property_count"):
             extra_info.append(f"{r['property_count']} props")
-        
+
         table_rows.append(f"""
             <tr>
                 <td><span class="badge {format_class}">{r["format"]}</span></td>
@@ -49,20 +53,20 @@ def generate_tab_content(test_name, results, data):
                 <td>{", ".join(extra_info) if extra_info else "-"}</td>
             </tr>
         """)
-    
+
     # Find winner
     valid_results = [r for r in test_results if r.get("mean_seconds")]
     if valid_results:
         fastest = min(valid_results, key=lambda x: x["mean_seconds"])
-        winner_text = f'<div class="winner">{fastest["format"]} - {fastest["mean_seconds"]*1000:.2f} ms</div>'
+        winner_text = f'<div class="winner">{fastest["format"]} - {fastest["mean_seconds"] * 1000:.2f} ms</div>'
     else:
         winner_text = ""
-    
+
     canvas_id = test_name.replace("_", "-")
-    
+
     # Check for detailed probe data
     has_probes = any("detailed_probes" in r for r in test_results)
-    
+
     probe_charts = ""
     probe_table = ""
     if has_probes:
@@ -73,31 +77,37 @@ def generate_tab_content(test_name, results, data):
             probes_runs = r.get("detailed_probes")
             if probes_runs and len(probes_runs) > 0:
                 labels = [p["label"] for p in probes_runs[0]]
-                
+
                 # Average values across runs
                 num_runs = len(probes_runs)
                 num_probes = len(labels)
                 avg_times = [0.0] * num_probes
                 avg_mems = [0.0] * num_probes
-                
+
                 for run in probes_runs:
                     for i, p in enumerate(run):
                         if i < num_probes:
                             avg_times[i] += p.get("elapsed_since_start", 0)
                             avg_mems[i] += p.get("delta_since_start", 0)
-                
+
                 avg_times = [t / num_runs for t in avg_times]
-                avg_mems = [m / num_runs / (1024*1024) for m in avg_mems]
-                
+                avg_mems = [m / num_runs / (1024 * 1024) for m in avg_mems]
+
                 format_name = r["format"]
-                format_class = "badge-usdc" if format_name == "usdc" else "badge-parquet"
-                
-                row_cells = [f'<td><span class="badge {format_class}">{format_name}</span></td>']
+                format_class = (
+                    "badge-usdc" if format_name == "usdc" else "badge-parquet"
+                )
+
+                row_cells = [
+                    f'<td><span class="badge {format_class}">{format_name}</span></td>'
+                ]
                 for i in range(num_probes):
-                    row_cells.append(f'<td>{avg_times[i]:.4f}s<br><small>{avg_mems[i]:+.2f} MB</small></td>')
-                
+                    row_cells.append(
+                        f"<td>{avg_times[i]:.4f}s<br><small>{avg_mems[i]:+.2f} MB</small></td>"
+                    )
+
                 probe_rows.append(f"<tr>{''.join(row_cells)}</tr>")
-        
+
         if labels:
             header_cells = ["<th>Format</th>"] + [f"<th>{l}</th>" for l in labels]
             probe_table = f"""
@@ -106,10 +116,10 @@ def generate_tab_content(test_name, results, data):
                 <p class="subtitle">Timing (s) and Cumulative Memory Delta (MB) at each probe</p>
                 <table class="probe-table">
                     <thead>
-                        <tr>{''.join(header_cells)}</tr>
+                        <tr>{"".join(header_cells)}</tr>
                     </thead>
                     <tbody>
-                        {''.join(probe_rows)}
+                        {"".join(probe_rows)}
                     </tbody>
                 </table>
             </div>
@@ -131,7 +141,7 @@ def generate_tab_content(test_name, results, data):
             </div>
         </div>
         """
-    
+
     return f"""
     <h2>{test_name.replace("_", " ").title()}</h2>
     
@@ -175,14 +185,20 @@ def generate_overview_content(data):
     """Generate overview tab content."""
     file_sizes = data.get("file_sizes", {})
     results = data.get("results", [])
-    
+
     # Calculate key metrics
-    initial_load = [r for r in results if r["test"] in ["initial_load", "initial_load_cold"]]
-    traversal = [r for r in results if r["test"] in ["single_property_traversal", "multi_property_traversal"]]
-    
+    initial_load = [
+        r for r in results if r["test"] in ["initial_load", "initial_load_cold"]
+    ]
+    traversal = [
+        r
+        for r in results
+        if r["test"] in ["single_property_traversal", "multi_property_traversal"]
+    ]
+
     usdc_load = next((r for r in initial_load if r["format"] == "usdc"), None)
     parquet_loads = [r for r in initial_load if "parquet" in r["format"]]
-    
+
     speedup = ""
     if usdc_load and parquet_loads:
         avg_parquet = sum(r["mean_seconds"] for r in parquet_loads) / len(parquet_loads)
@@ -193,7 +209,7 @@ def generate_overview_content(data):
             <div class="metric-value">{speedup_factor:.1f}x faster</div>
         </div>
         """
-    
+
     file_size_comparison = ""
     if "usdc" in file_sizes and any("parquet" in k for k in file_sizes):
         usdc_size = file_sizes["usdc"]
@@ -206,7 +222,7 @@ def generate_overview_content(data):
             <div class="metric-value">{compression:.0f}% smaller</div>
         </div>
         """
-    
+
     return f"""
     <h2>Performance Summary</h2>
     
@@ -240,7 +256,7 @@ def generate_overview_content(data):
 def generate_file_size_content(data):
     """Generate file size tab content."""
     file_sizes = data.get("file_sizes", {})
-    
+
     table_rows = []
     for format_name, size_bytes in sorted(file_sizes.items()):
         size_mb = size_bytes / (1024 * 1024)
@@ -252,7 +268,7 @@ def generate_file_size_content(data):
                 <td>{size_bytes:,} bytes</td>
             </tr>
         """)
-    
+
     return f"""
     <h2>File Size Comparison</h2>
     
@@ -286,7 +302,7 @@ def generate_file_size_content(data):
 def generate_memory_content(data):
     """Generate memory analysis tab content."""
     results = data.get("results", [])
-    
+
     # Group results by test type
     memory_by_test = {}
     for r in results:
@@ -295,7 +311,7 @@ def generate_memory_content(data):
             if test not in memory_by_test:
                 memory_by_test[test] = []
             memory_by_test[test].append(r)
-    
+
     if not memory_by_test:
         return """
         <h2>Memory Analysis</h2>
@@ -304,11 +320,11 @@ def generate_memory_content(data):
             <p>Memory tracking measures the RSS (Resident Set Size) delta during operations.</p>
         </div>
         """
-    
+
     # Create summary
     total_measured = sum(len(v) for v in memory_by_test.values())
     tests_with_data = len(memory_by_test)
-    
+
     # Create table for all memory measurements
     table_rows = []
     for test_name in sorted(memory_by_test.keys()):
@@ -316,11 +332,21 @@ def generate_memory_content(data):
             format_class = "badge-usdc" if r["format"] == "usdc" else "badge-parquet"
             peak_mb = r.get("peak_memory_bytes", 0) / (1024 * 1024)
             current_mb = r.get("current_memory_bytes", 0) / (1024 * 1024)
-            mean_time = f"{r.get('mean_seconds', 0)*1000:.2f} ms" if r.get("mean_seconds") else "-"
-            
+            mean_time = (
+                f"{r.get('mean_seconds', 0) * 1000:.2f} ms"
+                if r.get("mean_seconds")
+                else "-"
+            )
+
             # Determine if significant memory was used
-            significance = "Minimal" if peak_mb < 0.1 else ("Low" if peak_mb < 10 else ("Medium" if peak_mb < 100 else "High"))
-            
+            significance = (
+                "Minimal"
+                if peak_mb < 0.1
+                else (
+                    "Low" if peak_mb < 10 else ("Medium" if peak_mb < 100 else "High")
+                )
+            )
+
             table_rows.append(f"""
                 <tr>
                     <td>{test_name}</td>
@@ -331,7 +357,7 @@ def generate_memory_content(data):
                     <td>{significance}</td>
                 </tr>
             """)
-    
+
     # Create chart data
     chart_section = ""
     if memory_by_test:
@@ -343,7 +369,7 @@ def generate_memory_content(data):
             </div>
         </div>
         """
-    
+
     return f"""
     <h2>Memory Analysis</h2>
     
@@ -414,8 +440,12 @@ def generate_all_results_table(results):
         std = f"±{r['std_seconds']:.6f}s" if r.get("std_seconds") else "-"
         min_time = f"{r['min_seconds']:.6f}s" if r.get("min_seconds") else "-"
         max_time = f"{r['max_seconds']:.6f}s" if r.get("max_seconds") else "-"
-        memory = f"{r.get('peak_memory_bytes', 0)/(1024*1024):.2f} MB" if r.get('peak_memory_bytes') else "-"
-        
+        memory = (
+            f"{r.get('peak_memory_bytes', 0) / (1024 * 1024):.2f} MB"
+            if r.get("peak_memory_bytes")
+            else "-"
+        )
+
         extra = []
         if r.get("prim_count"):
             extra.append(f"{r['prim_count']:,} prims")
@@ -423,7 +453,7 @@ def generate_all_results_table(results):
             extra.append(f"{r['time_per_prim_us']:.2f} µs/prim")
         if r.get("size_mb"):
             extra.append(f"{r['size_mb']:.2f} MB")
-        
+
         rows.append(f"""
             <tr>
                 <td>{r["test"]}</td>
@@ -436,7 +466,7 @@ def generate_all_results_table(results):
                 <td>{", ".join(extra) if extra else "-"}</td>
             </tr>
         """)
-    
+
     return f"""
     <h2>All Test Results</h2>
     <div class="card">
@@ -466,9 +496,9 @@ def generate_all_results_table(results):
 def generate_chart_init(results):
     """Generate JavaScript to initialize all charts."""
     unique_tests = list(set(r["test"] for r in results))
-    
+
     chart_calls = []
-    
+
     # Overview file size chart
     chart_calls.append("""
         const fileSizes = data.file_sizes;
@@ -479,7 +509,7 @@ def generate_chart_init(results):
             mean_seconds: fileSizeValues[idx] / 1000  // Dummy value for chart
         })), 'MB', fileSizeValues);
     """)
-    
+
     # File size chart
     chart_calls.append("""
         createChart('file-size-chart', fileSizeLabels.map((label, idx) => ({
@@ -487,18 +517,18 @@ def generate_chart_init(results):
             mean_seconds: fileSizeValues[idx] / 1000
         })), 'MB', fileSizeValues);
     """)
-    
+
     # Test-specific charts
     for test in unique_tests:
         canvas_id = f"chart-{test.replace('_', '-')}"
         chart_calls.append(f"""
             createChart('{canvas_id}', data.results.filter(r => r.test === '{test}'), 'seconds');
         """)
-        
+
         # Detailed probe charts
         test_results = [r for r in results if r["test"] == test]
         has_probes = any(r.get("detailed_probes") for r in test_results)
-        
+
         if has_probes:
             # Get labels from first result with probes
             labels = []
@@ -507,40 +537,46 @@ def generate_chart_init(results):
                 if probes and len(probes) > 0:
                     labels = [p["label"] for p in probes[0]]
                     break
-            
+
             if labels:
                 timing_datasets = []
                 memory_datasets = []
-                
+
                 for r in test_results:
                     probes_runs = r.get("detailed_probes")
                     if not probes_runs:
                         continue
-                        
+
                     format_name = r["format"]
-                    
+
                     # Calculate averages
                     num_runs = len(probes_runs)
                     num_probes = len(labels)
-                    
+
                     acc_elapsed_start = [0.0] * num_probes
                     acc_elapsed_last = [0.0] * num_probes
                     acc_mem_start = [0.0] * num_probes
                     acc_mem_last = [0.0] * num_probes
-                    
+
                     for run in probes_runs:
                         for i, probe in enumerate(run):
                             if i < num_probes:
-                                acc_elapsed_start[i] += probe.get("elapsed_since_start", 0)
-                                acc_elapsed_last[i] += probe.get("elapsed_since_last", 0)
+                                acc_elapsed_start[i] += probe.get(
+                                    "elapsed_since_start", 0
+                                )
+                                acc_elapsed_last[i] += probe.get(
+                                    "elapsed_since_last", 0
+                                )
                                 acc_mem_start[i] += probe.get("delta_since_start", 0)
                                 acc_mem_last[i] += probe.get("delta_since_last", 0)
-                    
+
                     avg_elapsed_start = [x / num_runs for x in acc_elapsed_start]
                     avg_elapsed_last = [x / num_runs for x in acc_elapsed_last]
-                    avg_mem_start = [x / num_runs / (1024*1024) for x in acc_mem_start]
-                    avg_mem_last = [x / num_runs / (1024*1024) for x in acc_mem_last]
-                    
+                    avg_mem_start = [
+                        x / num_runs / (1024 * 1024) for x in acc_mem_start
+                    ]
+                    avg_mem_last = [x / num_runs / (1024 * 1024) for x in acc_mem_last]
+
                     # Add datasets
                     timing_datasets.append(f"""{{
                         type: 'line',
@@ -560,7 +596,7 @@ def generate_chart_init(results):
                         borderWidth: 1,
                         order: 1
                     }}""")
-                    
+
                     memory_datasets.append(f"""{{
                         type: 'line',
                         label: '{format_name} (Cumulative)',
@@ -579,12 +615,12 @@ def generate_chart_init(results):
                         borderWidth: 1,
                         order: 1
                     }}""")
-                
+
                 chart_calls.append(f"""
                     createProbeChart('{canvas_id}-timing', [{",".join(timing_datasets)}], {json.dumps(labels)}, 'seconds');
                     createProbeChart('{canvas_id}-memory', [{",".join(memory_datasets)}], {json.dumps(labels)}, 'MB');
                 """)
-    
+
     # Memory overview chart
     chart_calls.append("""
         const memoryResults = data.results.filter(r => r.peak_memory_bytes != null);
@@ -647,12 +683,15 @@ def generate_chart_init(results):
             }
         }
     """)
-    
+
     return "\n".join(chart_calls)
 
 
 # HTML template with tabs
-HTML_TEMPLATE = open(Path(__file__).parent / "report_template.html").read() if (Path(__file__).parent / "report_template.html").exists() else """<!DOCTYPE html>
+HTML_TEMPLATE = (
+    open(Path(__file__).parent / "report_template.html").read()
+    if (Path(__file__).parent / "report_template.html").exists()
+    else """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1043,50 +1082,69 @@ HTML_TEMPLATE = open(Path(__file__).parent / "report_template.html").read() if (
 </body>
 </html>
 """
+)
 
 
 def generate_html_report(data: dict, output_path: Path) -> None:
     """Generate tabbed HTML report."""
     results = data.get("results", [])
-    
+
     # Get unique test names
     test_names = list(set(r["test"] for r in results if r["test"] != "file_size"))
     test_names.sort()
-    
+
     # Generate tab buttons
-    tab_buttons = ['<button class="tab-button active" onclick="showTab(\'overview\')">Overview</button>']
-    tab_buttons.append('<button class="tab-button" onclick="showTab(\'file-size\')">File Size</button>')
-    
+    tab_buttons = [
+        '<button class="tab-button active" onclick="showTab(\'overview\')">Overview</button>'
+    ]
+    tab_buttons.append(
+        '<button class="tab-button" onclick="showTab(\'file-size\')">File Size</button>'
+    )
+
     for test_name in test_names:
         display_name = test_name.replace("_", " ").title()
         tab_id = test_name.replace("_", "-")
-        tab_buttons.append(f'<button class="tab-button" onclick="showTab(\'{tab_id}\')">{display_name}</button>')
-    
+        tab_buttons.append(
+            f'<button class="tab-button" onclick="showTab(\'{tab_id}\')">{display_name}</button>'
+        )
+
     # Add Memory tab
-    tab_buttons.append('<button class="tab-button" onclick="showTab(\'memory\')">Memory Analysis</button>')
-    tab_buttons.append('<button class="tab-button" onclick="showTab(\'all-results\')">All Results</button>')
-    
+    tab_buttons.append(
+        '<button class="tab-button" onclick="showTab(\'memory\')">Memory Analysis</button>'
+    )
+    tab_buttons.append(
+        '<button class="tab-button" onclick="showTab(\'all-results\')">All Results</button>'
+    )
+
     # Generate tab contents
     tab_contents = []
-    
+
     # Overview tab
-    tab_contents.append(f'<div id="overview" class="tab-content active">{generate_overview_content(data)}</div>')
-    
+    tab_contents.append(
+        f'<div id="overview" class="tab-content active">{generate_overview_content(data)}</div>'
+    )
+
     # File size tab
-    tab_contents.append(f'<div id="file-size" class="tab-content">{generate_file_size_content(data)}</div>')
-    
+    tab_contents.append(
+        f'<div id="file-size" class="tab-content">{generate_file_size_content(data)}</div>'
+    )
+
     # Test tabs
     for test_name in test_names:
         tab_id = test_name.replace("_", "-")
         content = generate_tab_content(test_name, results, data)
         tab_contents.append(f'<div id="{tab_id}" class="tab-content">{content}</div>')
-    
+
     # Memory tab
-    tab_contents.append(f'<div id="memory" class="tab-content">{generate_memory_content(data)}</div>')
-    
+    tab_contents.append(
+        f'<div id="memory" class="tab-content">{generate_memory_content(data)}</div>'
+    )
+
     # All results tab
-    tab_contents.append(f'<div id="all-results" class="tab-content">{generate_all_results_table(results)}</div>')
-    
+    tab_contents.append(
+        f'<div id="all-results" class="tab-content">{generate_all_results_table(results)}</div>'
+    )
+
     # Generate HTML
     html = HTML_TEMPLATE
     html = html.replace("{{test_run}}", data.get("test_run", "Unknown"))
@@ -1098,10 +1156,10 @@ def generate_html_report(data: dict, output_path: Path) -> None:
     html = html.replace("{{tab_contents}}", "\n".join(tab_contents))
     html = html.replace("{{json_data}}", json.dumps(data))
     html = html.replace("{{chart_initialization}}", generate_chart_init(results))
-    
+
     with open(output_path, "w") as f:
         f.write(html)
-    
+
     print(f"✓ HTML report generated: {output_path}")
 
 

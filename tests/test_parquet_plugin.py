@@ -1,6 +1,7 @@
-from pxr import Sdf, Usd, Plug
 import os
 import sys
+
+from pxr import Plug, Sdf, Usd
 
 
 def test_parquet_plugin():

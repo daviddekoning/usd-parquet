@@ -1,6 +1,7 @@
-from pxr import Sdf, Usd, Plug
 import os
+
 import pytest
+from pxr import Plug, Sdf, Usd
 
 
 # Ensure the plugin is loaded
