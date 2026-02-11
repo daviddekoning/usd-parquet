@@ -10,14 +10,14 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tests.benchmarks.results import MemoryTracker
+from tests.benchmarks.results import PerformanceTracker
 
 
 def test_overhead_exclusion():
     """Verify that probe overhead doesn't accumulate in elapsed_since_start."""
     print("Testing overhead exclusion...\n")
 
-    with MemoryTracker(name="Overhead Test", verbose=False) as tracker:
+    with PerformanceTracker(name="Overhead Test", verbose=False) as tracker:
         # First work segment: sleep for 0.1 seconds
         time.sleep(0.1)
         tracker.probe("after_sleep_1")

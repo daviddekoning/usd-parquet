@@ -16,7 +16,7 @@ from .results import (
     BenchmarkResult,
     BenchmarkTimer,
     MemoryResult,
-    MemoryTracker,
+    PerformanceTracker,
     TimingResult,
 )
 
@@ -50,7 +50,7 @@ def _run_multi_property_traversal_iteration(
 
         prim_count = 0
 
-        with MemoryTracker(
+        with PerformanceTracker(
             name=f"{format_name} Run {run_index}", verbose=False
         ) as tracker:
             tracker.probe("start")

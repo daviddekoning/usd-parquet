@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from pxr import Usd
 
-from .results import BenchmarkResult, MemoryResult, MemoryTracker, TimingResult
+from .results import BenchmarkResult, MemoryResult, PerformanceTracker, TimingResult
 
 
 def _run_single_iteration(
@@ -20,7 +20,7 @@ def _run_single_iteration(
 ):
     """Run a single iteration in a separate process."""
     try:
-        with MemoryTracker(
+        with PerformanceTracker(
             name=f"{format_name} Run {run_index}", verbose=False
         ) as tracker:
             # 1. Start probe (baseline)

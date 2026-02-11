@@ -11,4 +11,4 @@ Implemented process isolation for benchmark runs to ensure accurate memory measu
 
 ## Benefits
 - **Consistent Baselines**: Memory usage no longer decreases or drifts over multiple runs due to GC or caching behavior in the main process.
-- **Accurate Profiling**: `MemoryTracker` now measures the true cost of operations from a clean slate every time.
+- **Accurate Profiling**: `PerformanceTracker` now measures the true cost of operations from a clean slate every time.

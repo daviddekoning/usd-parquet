@@ -156,32 +156,32 @@ class BenchmarkTimer:
         return TimingResult.from_times(self.times)
 
 
-class MemoryTracker:
+class PerformanceTracker:
     """Context manager for tracking process-level memory and timing.
-
+    
     This tracks the entire process memory (RSS - Resident Set Size), which
     includes C++ allocations from USD and other native libraries, not just
     Python allocations.
-
+    
     Features:
     - Automatic timing from entry to exit
     - Memory tracking (RSS) throughout execution
     - Probe points to measure intermediate states
     - Detailed reporting of memory deltas and timing between probes
-
+    
     Example:
-        with MemoryTracker() as tracker:
+        with PerformanceTracker() as tracker:
             # Do setup work
             stage = Usd.Stage.Open("scene.usd")
             tracker.probe("stage_opened")
-
+            
             # Do more work
             stage.GetRootLayer().subLayerPaths.append("props.usd")
             tracker.probe("sublayer_added")
-
+            
             _ = stage.GetPseudoRoot()
             tracker.probe("composition_forced")
-
+        
         # Results printed automatically on exit
         # Or access via tracker.probes list
     """

@@ -113,10 +113,10 @@ The tests can be run via the `run_benchmarks.py` script. It will
   - `benchmark_results.json`: all the data collected during the run
   - `benchmark_report.html`: an html report generated from the json data
 
-A class called `MemoryTracker` (in `tests/results.py`) is used to track memory and timing during a test.
-It presents as a python context manager, and will measure the time and total memory used by the process at entry and exit of the context (e.g. `with MemoryTracker() as tracker:`). Memory is measured with psutil, to capture both python and C++ memory allocation. All tests are run in sub-processes to get clean memory usage numbers, unaffected by garbage collection in the main testing process.
+A class called `PerformanceTracker` (in `tests/benchmarks/results.py`) is used to track memory and timing during a test.
+It presents as a python context manager, and will measure the time and total memory used by the process at entry and exit of the context (e.g. `with PerformanceTracker() as tracker:`). Memory is measured with psutil, to capture both python and C++ memory allocation. All tests are run in sub-processes to get clean memory usage numbers, unaffected by garbage collection in the main testing process.
 
-`MemoryTracker` has a function `probe` that will record the time and memory use. This functionality is used to breakdown the time and memory used by different steps of the test.
+`PerformanceTracker` has a function `probe` that will record the time and memory use. This functionality is used to breakdown the time and memory used by different steps of the test.
 
 The benchmarks run 5 times by default.
 

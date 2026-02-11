@@ -8,7 +8,7 @@
 
 **Changes**:
 - Added `psutil` dependency
-- Rewrote `MemoryTracker` class to use process-level memory
+- Rewrote `PerformanceTracker` class to use process-level memory
 - Added fallback to `resource.getrusage()` for Unix systems
 - Created comprehensive documentation
 

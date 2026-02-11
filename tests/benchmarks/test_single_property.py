@@ -16,7 +16,7 @@ from .results import (
     BenchmarkResult,
     BenchmarkTimer,
     MemoryResult,
-    MemoryTracker,
+    PerformanceTracker,
     TimingResult,
 )
 
@@ -26,7 +26,7 @@ def _run_single_property_iteration(
 ):
     """Run a single iteration in a separate process."""
     try:
-        with MemoryTracker(
+        with PerformanceTracker(
             name=f"{format_name} Run {run_index}", verbose=False
         ) as tracker:
             tracker.probe("start")
@@ -71,7 +71,7 @@ def _run_single_property_traversal_iteration(
         prim_count = 0
         print(f"  Expected prims with property: {expected_prims}", flush=True)
 
-        with MemoryTracker(
+        with PerformanceTracker(
             name=f"{format_name} Run {run_index}", verbose=False
         ) as tracker:
             tracker.probe("start")

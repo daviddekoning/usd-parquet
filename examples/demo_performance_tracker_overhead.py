@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Demonstration of probe overhead correction in MemoryTracker.
+Demonstration of probe overhead correction in PerformanceTracker.
 
 This example shows how the tracker correctly excludes probe measurement
 overhead from timing calculations, ensuring accurate elapsed times even
@@ -14,14 +14,14 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tests.benchmarks.results import MemoryTracker
+from tests.benchmarks.results import PerformanceTracker
 
 
 def demo_with_explanation():
     """Demonstrate overhead correction with clear explanation."""
 
     print("=" * 70)
-    print("MemoryTracker Overhead Correction Demo")
+    print("PerformanceTracker Overhead Correction Demo")
     print("=" * 70)
     print("\nThis test performs 5 work steps, each taking exactly 0.1 seconds.")
     print("Multiple probes are used to measure progress.\n")
@@ -32,7 +32,7 @@ def demo_with_explanation():
     print("  - Cumulative: 0.1s, 0.2s, 0.3s, 0.4s, 0.5s")
     print("\n" + "=" * 70)
 
-    with MemoryTracker(name="Overhead Correction Demo", verbose=False) as tracker:
+    with PerformanceTracker(name="Overhead Correction Demo", verbose=False) as tracker:
         # Work step 1
         time.sleep(0.1)
         tracker.probe("step_1")

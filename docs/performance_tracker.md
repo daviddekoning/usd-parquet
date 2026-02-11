@@ -1,8 +1,8 @@
-# MemoryTracker Enhancement
+# PerformanceTracker Enhancement
 
 ## Overview
 
-The `MemoryTracker` class has been enhanced to be a general-purpose performance measurement tool that tracks both **timing** and **memory usage** throughout a test, with support for intermediate measurement points called **probes**.
+The `PerformanceTracker` class has been enhanced to be a general-purpose performance measurement tool that tracks both **timing** and **memory usage** throughout a test, with support for intermediate measurement points called **probes**.
 
 ## Key Features
 
@@ -44,9 +44,9 @@ The legacy `result` attribute (MemoryResult) is still populated for existing cod
 ### Basic Usage with Probes
 
 ```python
-from tests.benchmarks.results import MemoryTracker
+from tests.benchmarks.results import PerformanceTracker
 
-with MemoryTracker(name="USD Load Test") as tracker:
+with PerformanceTracker(name="USD Load Test") as tracker:
     # Open base scene
     stage = Usd.Stage.Open("scene.usd")
     tracker.probe("stage_opened")
@@ -65,7 +65,7 @@ with MemoryTracker(name="USD Load Test") as tracker:
 ### Silent Mode with Manual Access
 
 ```python
-with MemoryTracker(name="Test", verbose=False) as tracker:
+with PerformanceTracker(name="Test", verbose=False) as tracker:
     do_work()
     tracker.probe("step_1")
     
@@ -83,7 +83,7 @@ for probe in tracker.probes:
 ```python
 times = []
 for i in range(5):
-    with MemoryTracker(name=f"Run {i+1}", verbose=False) as tracker:
+    with PerformanceTracker(name=f"Run {i+1}", verbose=False) as tracker:
         load_and_process()
         tracker.probe("complete")
     
@@ -130,6 +130,6 @@ For true cold load measurements:
 
 ## See Also
 
-- `examples/memory_tracker_usage.py` - Complete usage examples
+- `examples/performance_tracker_usage.py` - Complete usage examples
 - `tests/benchmarks/test_initial_load.py` - Real-world test using probes
-- `tests/benchmarks/results.py` - Full implementation
+- `tests/benchmarks/results.py` - Full implementation details

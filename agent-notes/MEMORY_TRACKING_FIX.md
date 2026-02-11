@@ -21,13 +21,13 @@ uv add psutil
 
 This adds cross-platform process memory tracking capabilities.
 
-### 2. Rewrote `MemoryTracker` Class
+### 2. Rewrote `PerformanceTracker` Class
 
 **Location**: `tests/benchmarks/results.py`
 
 **Old approach** (broken):
 ```python
-class MemoryTracker:
+class PerformanceTracker:
     def __enter__(self):
         tracemalloc.start()  # Only tracks Python allocations
         
@@ -38,7 +38,7 @@ class MemoryTracker:
 
 **New approach** (correct):
 ```python
-class MemoryTracker:
+class PerformanceTracker:
     def __enter__(self):
         # Record baseline process RSS (Resident Set Size)
         self._baseline_rss = psutil.Process().memory_info().rss
@@ -70,7 +70,7 @@ class MemoryTracker:
 1. **`tests/benchmarks/results.py`**
    - Replaced `tracemalloc` with `psutil`
    - Added fallback to `resource.getrusage()` for Unix systems
-   - Updated `MemoryTracker` to measure process RSS
+   - Updated `PerformanceTracker` to measure process RSS
    - Added proper documentation
 
 2. **`pyproject.toml`**
